@@ -21,11 +21,16 @@ def mcu(profile_path: str = "thrust_profile.csv") -> None:
             msg = bus.recv(timeout=0.05)
             t = time.monotonic()
 
-            if msg and not msg.is_extended_id:
-                if msg.arbitration_id == EPR_STATUS and len(msg.data) == 3:
-                    last_epr_status = (t, msg.data[0], msg.data[1], msg.data[2])
-                elif msg.arbitration_id == ETC_STATUS and len(msg.data) == 4:
-                    last_etc_status = (t, msg.data[0], msg.data[1])
+            if t - t0 >= times[-1]:
+                send(bus, THRUST_REQUEST, 0)
+                send(bus, MCU_SHUTDOWN)
+                log("MCU", "Thrust profile finished; shutdown sent")
+                return
+
+            if is_valid_message_frame(msg, EPR_STATUS_LEN) and msg.arbitration_id == EPR_STATUS:
+                last_epr_status = (t, msg.data[0], msg.data[1], msg.data[2])
+            elif is_valid_message_frame(msg, ETC_STATUS) and msg.arbitration_id == ETC_STATUS:
+                last_etc_status = (t, msg.data[0], msg.data[1])
 
             if t >= next_send:
                 elapsed = t - t0

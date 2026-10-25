@@ -2,6 +2,7 @@
 
 import argparse
 import multiprocessing
+import time
 
 from utils import *
 from mcu import mcu
@@ -15,20 +16,33 @@ def start_all(fault_after: float | None) -> None:
         multiprocessing.Process(target=etc, name="ETC Module"),
         multiprocessing.Process(target=mcu, name="MCU Module"),
     ]
-    for process in processes:
-        process.start()
+    started = []
     try:
+        for process in processes:
+            process.start()
+            started.append(process)
+        shutdown_deadline = None
         while True:
             for process in processes:
                 process.join(timeout=0.1)
                 if process.exitcode is not None:
-                    raise RuntimeError(f"{process.name} exited with {process.exitcode}")
+                    if process.exitcode != 0:
+                        raise RuntimeError(f"{process.name} exited with {process.exitcode}")
+                    if shutdown_deadline is None:
+                        shutdown_deadline = time.monotonic() + 5.0
+            if all(process.exitcode == 0 for process in processes):
+                return
+            if shutdown_deadline is not None and time.monotonic() >= shutdown_deadline:
+                raise RuntimeError("Timed out waiting for simulator tasks to shut down")
     finally:
-        for process in processes:
+        for process in started:
             if process.is_alive():
                 process.terminate()
-        for process in processes:
-            process.join()
+        for process in started:
+            process.join(timeout=1.0)
+            if process.is_alive():
+                process.kill()
+                process.join()
 
 
 def main():

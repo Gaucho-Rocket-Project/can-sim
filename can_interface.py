@@ -1,20 +1,14 @@
 import can
+from can_config import *
 
-# CAN IDs
-THRUST_REQUEST = 0x100
-MCU_HEARTBEAT = 0x101
-EPR_STATUS = 0x200
-ETC_STATUS = 0x300
-
-EPR_STANDBY = 0
-EPR_READY = 1
-EPR_SAFE = 2
-
-THROTTLE_INHIBITED = 0
-THROTTLE_ENABLED = 1
-
-PERIOD = 0.25  # seconds
-TIMEOUT = 1.0  # seconds
+def is_valid_message_frame(msg: can.Message | None, expected_length: int | 0) -> bool:
+    return (
+        msg is not None
+        and not msg.is_extended_id
+        and not msg.is_remote_frame
+        and not msg.is_error_frame
+        and msg.dlc == len(msg.data) == expected_length
+    )
 
 def send(bus: can.BusABC, can_id: int, *data: int) -> None:
     '''

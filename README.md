@@ -42,9 +42,16 @@ python3 sim.py all --fault-after 10
 Or run each node separately:
 ```bash
 python3 sim.py mcu
-python3 sim.py press
-python3 sim.py throttle
+python3 sim.py epr
+python3 sim.py etc
 ```
+
+At the final thrust-profile timestamp, the MCU sends zero thrust followed by
+the shutdown CAN frame (`0x102`, standard ID, empty payload). EPR reports SAFE
+with a vent request, and ETC reports INHIBITED with zero actuator output, then
+all nodes close their CAN buses and exit. In `all` mode, the launcher waits up
+to five seconds for remaining nodes to exit before terminating stuck tasks.
+You can also send the shutdown frame to EPR and ETC with `cansend vcan0 102#`.
 
 ## Thrust plotter
 Install Matplotlib

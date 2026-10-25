@@ -11,9 +11,13 @@ def epr(fault_after: float | None = None) -> None:
         last_state = None
         log("EPR", "Running: mocked tank status, safety and vent-request flags")
         while True:
-            msg = bus.recv(timeout=0.05)
             t = time.monotonic()
-            if msg and msg.arbitration_id == MCU_HEARTBEAT and len(msg.data) == 1:
+            msg = bus.recv(timeout=0.05)
+            if is_valid_message_frame(msg, MCU_SHUTDOWN_LEN) and msg.arbitration_id == MCU_SHUTDOWN:
+                send(bus, EPR_STATUS, EPR_SAFE, 0, 1)
+                log("EPR", "Shutdown received; SAFE, vent requested")
+                return
+            elif is_valid_message_frame(msg, MCU_HEARTBEAT_LEN) and msg.arbitration_id == MCU_HEARTBEAT:
                 last_mcu_heartbeat = t
             # Create fault after specified time
             injected_fault = fault_after is not None and t - start >= fault_after

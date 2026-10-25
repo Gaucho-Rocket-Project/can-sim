@@ -16,15 +16,18 @@ def etc():
         while True:
             msg = bus.recv(timeout=0.05)
             t = time.monotonic()
-            if msg and not msg.is_extended_id:
-                if msg.arbitration_id == THRUST_REQUEST and len(msg.data) == 1:
-                    requested = min(100, msg.data[0])
-                    last_thrust_request = t
-                elif msg.arbitration_id == MCU_HEARTBEAT and len(msg.data) == 1:
-                    last_mcu_heartbeat = t
-                elif msg.arbitration_id == EPR_STATUS and len(msg.data) == 3:
-                    press_state = msg.data[0]
-                    last_press_status = t
+            if is_valid_message_frame(msg, MCU_SHUTDOWN_LEN) and msg.arbitration_id == MCU_SHUTDOWN:
+                send(bus, ETC_STATUS, THROTTLE_INHIBITED, 0, 25, 70)
+                log("ETC", "Shutdown received; INHIBITED, virtual actuator=0%")
+                return
+            elif is_valid_message_frame(msg, THRUST_REQUEST_LEN) and msg.arbitration_id == THRUST_REQUEST:
+                requested = min(100, msg.data[0])
+                last_thrust_request = t
+            elif is_valid_message_frame(msg, MCU_HEARTBEAT_LEN) and msg.arbitration_id == MCU_HEARTBEAT:
+                last_mcu_heartbeat = t
+            elif is_valid_message_frame(msg, EPR_STATUS_LEN) and msg.arbitration_id == EPR_STATUS:
+                press_state = msg.data[0]
+                last_press_status = t
 
             # Placeholder sensor readings
             virtual_temperature_signal = 25
