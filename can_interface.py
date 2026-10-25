@@ -1,7 +1,7 @@
 import can
 from can_config import *
 
-def is_valid_message_frame(msg: can.Message | None, expected_length: int | 0) -> bool:
+def is_valid_message_frame(msg: can.Message | None, expected_length: int) -> bool:
     return (
         msg is not None
         and not msg.is_extended_id
