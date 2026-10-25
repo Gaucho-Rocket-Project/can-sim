@@ -1,6 +1,6 @@
-# CAN Bus Simulator
+# Halo MCU-ECU CAN Bus Simulator
 
-Three-node virtual-CAN communication simulator for TVC/ECU architecture.
+Three-node virtual-CAN communication simulator for Halo's MCU/ECU CAN architecture.
 
 NO REAL PROPULSION CONTROL: all pressure, temperature, and actuator data are
 synthetic; the percent-to-actuator assignment is a placeholder for testing
@@ -36,14 +36,14 @@ cansend vcan0 <id>#<message>
 ## Usage 
 on Linux after creating vcan0:
 ```bash
-python3 ecu_can_sim.py all
-python3 ecu_can_sim.py all --fault-after 10
+python3 sim.py all
+python3 sim.py all --fault-after 10
 ```
 Or run each node separately:
 ```bash
-python3 ecu_can_sim.py mcu
-python3 ecu_can_sim.py press
-python3 ecu_can_sim.py throttle
+python3 sim.py mcu
+python3 sim.py press
+python3 sim.py throttle
 ```
 
 ## Thrust plotter
